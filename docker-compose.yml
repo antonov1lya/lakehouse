@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  spark-standalone:
+    image: lakehouse
+    container_name: spark-standalone
+    ports:
+      - "4040:4040"
+      - "8080:8080"
+      - "5000:5000"
+    environment:
+      - SPARK_MODE=standalone
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data
+      - ./logs:/app/logs
