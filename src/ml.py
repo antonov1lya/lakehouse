@@ -20,7 +20,7 @@ class MLPipeline:
     def _load_data(self):
         self.train_df = self.spark.read \
             .format("delta") \
-            .load("data/gold/train")
+            .load("data/gold/train").cache()
 
         self.test_df = self.spark.read \
             .format("delta") \

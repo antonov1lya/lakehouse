@@ -1,5 +1,6 @@
 from pyspark.sql.functions import col, hour, unix_timestamp
 from pyspark.sql import functions as F
+from delta.tables import DeltaTable
 
 
 class ELTPipeline:
@@ -16,7 +17,6 @@ class ELTPipeline:
             .option("header", "true") \
             .option("inferSchema", "true") \
             .csv("data/nyc_yellow_taxi.csv")
-
         df = df.drop(
             "pickup_longitude",
             "pickup_latitude",
@@ -37,6 +37,8 @@ class ELTPipeline:
         df.write \
             .format("delta") \
             .mode("overwrite") \
+            .option("optimizeWrite", "true") \
+            .option("autoCompact", "true") \
             .save("data/bronze/df")
 
     def _create_silver(self):
@@ -60,9 +62,14 @@ class ELTPipeline:
         bronze_df.write \
             .format("delta") \
             .mode("overwrite") \
+            .option("optimizeWrite", "true") \
+            .option("autoCompact", "true") \
             .save("data/silver/df")
 
     def _create_gold(self):
+        delta_table = DeltaTable.forPath(self.spark, "data/silver/df")
+        delta_table.optimize().executeZOrderBy("pickup_hour")
+
         silver_df = self.spark.read \
             .format("delta") \
             .load("data/silver/df")
@@ -78,9 +85,13 @@ class ELTPipeline:
         train_df.write \
             .format("delta") \
             .mode("overwrite") \
+            .option("optimizeWrite", "true") \
+            .option("autoCompact", "true") \
             .save("data/gold/train")
 
         test_df.write \
             .format("delta") \
             .mode("overwrite") \
+            .option("optimizeWrite", "true") \
+            .option("autoCompact", "true") \
             .save("data/gold/test")
