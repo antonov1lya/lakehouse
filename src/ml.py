@@ -4,6 +4,7 @@ from pyspark.ml.regression import LinearRegression
 from pyspark.ml.feature import VectorAssembler, StandardScaler
 from pyspark.ml.evaluation import RegressionEvaluator
 
+mlflow.set_tracking_uri("file:/app/logs/mlruns")
 
 class MLPipeline:
     def __init__(self, spark):
